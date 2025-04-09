@@ -1,0 +1,71 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns  # Importing Seaborn
+
+# Load and explore data
+df = pd.read_csv("C:\\Users\\rajat\\Downloads\\customers-100000.csv")
+print("First 5 rows:\n", df.head(10))
+print("\nDataset info:\n", df.info())
+print("\nSummary stats:\n", df.describe())
+
+# Data cleaning
+df['Country'] = df['Country'].fillna('Unknown')  # Fill NaN in Country column with 'Unknown'
+df['Full Name'] = df['First Name'] + ' ' + df['Last Name']  # Combine first and last name
+df['Subscription Date'] = pd.to_datetime(df['Subscription Date'], errors='coerce')  # Convert subscription date and handle errors
+
+# Calculate Subscription Length in days and handle NaN values
+df['Subscription Length'] = (pd.Timestamp.now() - df['Subscription Date']).dt.days
+df['Subscription Length'] = df['Subscription Length'].fillna(0).astype(int)  # Fill NaN with 0 and convert to int
+
+# Visualization 1: Country distribution (Bar Chart)
+plt.figure(figsize=(10, 7))
+country_counts = df['Country'].value_counts().head(5)
+if not country_counts.empty:
+    country_counts.plot(kind='bar', color='skyblue', edgecolor='black')
+    plt.title('Top 5 Countries by Customer Distribution')
+    plt.xlabel('Country')
+    plt.ylabel('Number of Customers')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# Visualization 2: Country distribution (Pie Chart)
+plt.figure(figsize=(8, 6))
+if not country_counts.empty:
+    country_counts.plot.pie(autopct='%1.1f%%', startangle=90, colors=['lightblue', 'lightgreen', 'lightcoral', 'skyblue', 'lightyellow'])
+    plt.title('Top 5 Countries by Customer Distribution (Pie Chart)')
+    plt.ylabel('')
+    plt.show()
+
+# Visualization 3: Subscription Length Histogram
+plt.hist(df['Subscription Length'], bins=20, color='lightgreen', edgecolor='black')
+plt.title('Subscription Length Distribution')
+plt.xlabel('Days Subscribed')
+plt.ylabel('Number of Customers')
+plt.show()
+
+# Visualization 4: Subscription Length Categories (Bar Chart)
+bins = [0, 30, 60, 90, 120, 150, 180]
+labels = ['0-30', '31-60', '61-90', '91-120', '121-150', '151-180']
+df['Subscription Category'] = pd.cut(df['Subscription Length'], bins=bins, labels=labels)
+
+# Visualization 5: Box Plot for Subscription Length
+plt.figure(figsize=(8, 6))
+plt.boxplot(df['Subscription Length'], vert=False, patch_artist=True, 
+            boxprops=dict(facecolor='lightgreen', color='black'),
+            whiskerprops=dict(color='black'),
+            flierprops=dict(marker='o', markerfacecolor='red', markersize=7, linestyle='none'))
+plt.title('Box Plot of Subscription Length')
+plt.xlabel('Days Subscribed')
+plt.show()
+
+# Visualization 6: Seaborn Distribution Plot (Histogram)
+plt.figure(figsize=(8, 6))
+sns.histplot(df['Subscription Length'], bins=20, kde=True, color='skyblue', edgecolor='black')
+plt.title('Seaborn Distribution Plot of Subscription Length')
+plt.xlabel('Days Subscribed')
+plt.ylabel('Number of Customers')
+plt.show()
+
+# Save cleaned data
+df.to_csv('cleaned_customer_data.csv', index=False)
+print("\nCleaned data saved successfully!")
